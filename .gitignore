@@ -1,0 +1,22 @@
+# Claude Code
+.claude/
+
+# Avalonia / .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+
+# Runtime data (not part of source)
+Runtime/
+Versions/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Config (user-specific)
+config.json
