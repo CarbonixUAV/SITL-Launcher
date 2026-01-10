@@ -81,6 +81,11 @@ Stores:
 - MVVM pattern for Avalonia
 - Keep UI simple - this is a launcher, not a flight planner
 
+## Code Changes
+
+- When moving/renaming files, keep content identical to preserve git history
+- Cosmetic cleanups (whitespace, comments, formatting) belong in separate commits
+
 ## Git
 
 - Conventional Commits format
