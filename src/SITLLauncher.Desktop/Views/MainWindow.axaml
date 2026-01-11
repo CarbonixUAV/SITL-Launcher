@@ -3,11 +3,13 @@
         xmlns:vm="using:SITLLauncher.Core.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         x:Class="SITLLauncher.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="SITL Launcher">
+        Title="SITL Launcher"
+        Width="400" Height="250"
+        MinWidth="350" MinHeight="200">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -15,6 +17,67 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+        <!-- Version -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,8">
+            <TextBlock Text="Version" Margin="0,0,0,4"/>
+            <ComboBox ItemsSource="{Binding Versions}"
+                      SelectedItem="{Binding SelectedVersion}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
 
+        <!-- Aircraft -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock Text="Aircraft" Margin="0,0,0,4"/>
+            <ComboBox ItemsSource="{Binding Aircraft}"
+                      SelectedItem="{Binding SelectedAircraft}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Airport -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,8">
+            <TextBlock Text="Airport" Margin="0,0,0,4"/>
+            <ComboBox ItemsSource="{Binding Airports}"
+                      SelectedItem="{Binding SelectedAirport}"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Spacer -->
+        <Panel Grid.Row="4"/>
+
+        <!-- Status and Buttons -->
+        <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding StatusText}"
+                       VerticalAlignment="Center"/>
+            <Button Grid.Column="1"
+                    Content="Kill"
+                    Command="{Binding KillCommand}"
+                    Margin="8,0,0,0"
+                    Width="80"/>
+            <Button Grid.Column="2"
+                    Content="Launch"
+                    Command="{Binding LaunchCommand}"
+                    Margin="8,0,0,0"
+                    Width="80"/>
+        </Grid>
+    </Grid>
 </Window>
