@@ -8,8 +8,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="SITL Launcher"
-        Width="400" Height="250"
-        MinWidth="350" MinHeight="200">
+        Width="400" Height="300"
+        MinWidth="350" MinHeight="250">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -60,8 +60,41 @@
             </ComboBox>
         </StackPanel>
 
-        <!-- Spacer -->
-        <Panel Grid.Row="4"/>
+        <!-- Output Panel -->
+        <Expander Grid.Row="4"
+                  Header="Output"
+                  IsExpanded="{Binding IsOutputExpanded}"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  VerticalContentAlignment="Stretch"
+                  Margin="0,8,0,8">
+            <Expander.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy All" Click="OnCopyAllClick"/>
+                </ContextMenu>
+            </Expander.ContextMenu>
+            <Border BorderBrush="{DynamicResource TextControlBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Background="{DynamicResource TextControlBackground}"
+                    MinHeight="150">
+                <ScrollViewer x:Name="OutputScrollViewer"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding OutputLines}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
+                                           FontFamily="Consolas,Courier New,monospace"
+                                           FontSize="11"
+                                           Margin="4,0"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Expander>
 
         <!-- Status and Buttons -->
         <Grid Grid.Row="5" ColumnDefinitions="*,Auto,Auto">

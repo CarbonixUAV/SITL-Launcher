@@ -40,10 +40,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = "Ready";
 
+    public ObservableCollection<string> OutputLines { get; } = [];
+
+    [ObservableProperty]
+    private bool _isOutputExpanded;
+
     public MainWindowViewModel(LauncherService launcher)
     {
         _launcher = launcher;
         _launcher.StateChanged += OnStateChanged;
+        _launcher.OutputReceived += OnOutputReceived;
 
         LoadData();
     }
@@ -97,6 +103,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedVersion is null || SelectedAircraft is null || SelectedAirport is null)
             return;
 
+        OutputLines.Clear();
         _launcher.Launch(SelectedVersion, SelectedAircraft, SelectedAirport);
     }
 
@@ -119,5 +126,11 @@ public partial class MainWindowViewModel : ViewModelBase
         // Already on UI thread - guaranteed by LauncherService
         IsRunning = e.IsRunning;
         StatusText = e.StatusText;
+    }
+
+    private void OnOutputReceived(object? sender, string line)
+    {
+        // Already on UI thread - guaranteed by LauncherService
+        OutputLines.Add(line);
     }
 }

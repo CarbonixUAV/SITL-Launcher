@@ -24,6 +24,7 @@ public class LauncherService : IDisposable
         _processRunner = new ProcessRunner();
 
         _processRunner.Exited += OnProcessExited;
+        _processRunner.OutputReceived += OnOutputReceived;
     }
 
     /// <summary>
@@ -61,6 +62,12 @@ public class LauncherService : IDisposable
     /// Guaranteed to fire on UI thread.
     /// </summary>
     public event EventHandler<ProcessStateEventArgs>? StateChanged;
+
+    /// <summary>
+    /// Raised when output is received from the process.
+    /// Guaranteed to fire on UI thread.
+    /// </summary>
+    public event EventHandler<string>? OutputReceived;
 
     /// <summary>
     /// Scans for available versions in the data path.
@@ -152,9 +159,15 @@ public class LauncherService : IDisposable
             false, $"Exited (code {exitCode})")));
     }
 
+    private void OnOutputReceived(object? sender, string line)
+    {
+        _dispatcher.Post(() => OutputReceived?.Invoke(this, line));
+    }
+
     public void Dispose()
     {
         _processRunner.Exited -= OnProcessExited;
+        _processRunner.OutputReceived -= OnOutputReceived;
         _processRunner.Dispose();
     }
 }
