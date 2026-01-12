@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="350"
+        x:Class="SITLLauncher.Desktop.Views.ErrorDialog"
+        Title="Error"
+        Width="500" Height="350"
+        MinWidth="400" MinHeight="250"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid Margin="16" RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   x:Name="MessageText"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,12"
+                   FontWeight="SemiBold"/>
+
+        <!-- Details -->
+        <TextBox Grid.Row="1"
+                 x:Name="DetailsText"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 FontFamily="Consolas,Courier New,monospace"
+                 FontSize="11"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <Button Content="Copy to Clipboard"
+                    x:Name="CopyButton"
+                    Click="OnCopyClick"
+                    Margin="0,0,8,0"/>
+            <Button Content="Close"
+                    Click="OnCloseClick"
+                    Width="80"/>
+        </StackPanel>
+    </Grid>
+</Window>
