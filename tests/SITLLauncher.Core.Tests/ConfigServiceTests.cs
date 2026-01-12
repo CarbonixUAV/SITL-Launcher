@@ -25,66 +25,75 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
-    public void Load_FileDoesNotExist_ReturnsDefaultConfig()
+    public void Constructor_FileDoesNotExist_LoadsDefaultConfig()
     {
         var service = new ConfigService(_configPath);
 
-        var config = service.Load();
-
-        Assert.NotNull(config);
-        Assert.Single(config.Airports);
-        Assert.Equal("Riverstone", config.Airports[0].Name);
-        Assert.Empty(config.SerialPorts);
+        Assert.Single(service.Airports);
+        Assert.Equal("Riverstone", service.Airports[0].Name);
+        Assert.Empty(service.SerialPorts);
+        Assert.Null(service.LastSelectedVersion);
+        Assert.Null(service.LastSelectedAircraft);
     }
 
     [Fact]
-    public void SaveAndLoad_RoundTrips()
+    public void RecordLaunch_UpdatesSelections()
     {
         var service = new ConfigService(_configPath);
-        var config = new LauncherConfig
-        {
-            Airports =
-            [
-                new Airport { Name = "Test Airport", Location = "-33.8,151.2,10,90" }
-            ],
-            SerialPorts =
-            [
-                new SerialPortConfig { Argument = "-A tcp:0" }
-            ],
-            LastAirportPerAircraft = { ["ottano-headless"] = "Test Airport" },
-            LastVersionPerAircraft = { ["ottano-headless"] = "v1.0.0" },
-            LastSelectedVersion = "v1.0.0",
-            LastSelectedAircraft = "ottano-headless"
-        };
 
-        service.Save(config);
-        var loaded = service.Load();
+        service.RecordLaunch("v1.0.0", "ottano-headless", "Riverstone");
 
-        Assert.Single(loaded.Airports);
-        Assert.Equal("Test Airport", loaded.Airports[0].Name);
-        Assert.Equal("-33.8,151.2,10,90", loaded.Airports[0].Location);
-        Assert.Single(loaded.SerialPorts);
-        Assert.Equal("-A tcp:0", loaded.SerialPorts[0].Argument);
-        Assert.Equal("Test Airport", loaded.LastAirportPerAircraft["ottano-headless"]);
-        Assert.Equal("v1.0.0", loaded.LastVersionPerAircraft["ottano-headless"]);
-        Assert.Equal("v1.0.0", loaded.LastSelectedVersion);
-        Assert.Equal("ottano-headless", loaded.LastSelectedAircraft);
+        Assert.Equal("v1.0.0", service.LastSelectedVersion);
+        Assert.Equal("ottano-headless", service.LastSelectedAircraft);
+        Assert.Equal("Riverstone", service.GetLastAirportForAircraft("ottano-headless"));
+        Assert.Equal("v1.0.0", service.GetLastVersionForAircraft("ottano-headless"));
     }
 
     [Fact]
-    public void Save_CreatesFormattedJson()
+    public void RecordLaunch_PersistsToDisk()
+    {
+        var service1 = new ConfigService(_configPath);
+        service1.RecordLaunch("v2.0.0", "volanti-realflight", "Sydney");
+
+        // Create new instance to verify persistence
+        var service2 = new ConfigService(_configPath);
+
+        Assert.Equal("v2.0.0", service2.LastSelectedVersion);
+        Assert.Equal("volanti-realflight", service2.LastSelectedAircraft);
+        Assert.Equal("Sydney", service2.GetLastAirportForAircraft("volanti-realflight"));
+        Assert.Equal("v2.0.0", service2.GetLastVersionForAircraft("volanti-realflight"));
+    }
+
+    [Fact]
+    public void RecordLaunch_TracksMultipleAircraft()
     {
         var service = new ConfigService(_configPath);
-        var config = new LauncherConfig
-        {
-            Airports = [new Airport { Name = "HQ", Location = "1,2,3,4" }]
-        };
 
-        service.Save(config);
-        var json = File.ReadAllText(_configPath);
+        service.RecordLaunch("v1.0.0", "ottano-headless", "Riverstone");
+        service.RecordLaunch("v2.0.0", "volanti-realflight", "Sydney");
 
-        Assert.Contains("\"airports\"", json);
-        Assert.Contains("\"name\"", json);
-        Assert.Contains("\n", json); // Indented
+        Assert.Equal("Riverstone", service.GetLastAirportForAircraft("ottano-headless"));
+        Assert.Equal("v1.0.0", service.GetLastVersionForAircraft("ottano-headless"));
+        Assert.Equal("Sydney", service.GetLastAirportForAircraft("volanti-realflight"));
+        Assert.Equal("v2.0.0", service.GetLastVersionForAircraft("volanti-realflight"));
+        // Last launch wins for global selection
+        Assert.Equal("v2.0.0", service.LastSelectedVersion);
+        Assert.Equal("volanti-realflight", service.LastSelectedAircraft);
+    }
+
+    [Fact]
+    public void GetLastAirportForAircraft_UnknownAircraft_ReturnsNull()
+    {
+        var service = new ConfigService(_configPath);
+
+        Assert.Null(service.GetLastAirportForAircraft("unknown-aircraft"));
+    }
+
+    [Fact]
+    public void GetLastVersionForAircraft_UnknownAircraft_ReturnsNull()
+    {
+        var service = new ConfigService(_configPath);
+
+        Assert.Null(service.GetLastVersionForAircraft("unknown-aircraft"));
     }
 }

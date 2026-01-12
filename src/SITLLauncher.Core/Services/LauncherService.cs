@@ -7,7 +7,7 @@ using SITLLauncher.Core.Models;
 namespace SITLLauncher.Core.Services;
 
 /// <summary>
-/// Orchestrates SITL launching, version scanning, and runtime management.
+/// Orchestrates SITL launching and process lifecycle.
 /// All events are guaranteed to fire on the UI thread (via dispatcher).
 /// </summary>
 public class LauncherService : IDisposable
@@ -15,34 +15,30 @@ public class LauncherService : IDisposable
     private readonly IUiDispatcher _dispatcher;
     private readonly ConfigService _configService;
     private readonly SitlProcessManager _processManager;
-    private readonly string _dataPath;
-    private LauncherConfig _config;
 
     public LauncherService(ConfigService configService, IUiDispatcher dispatcher)
     {
-        _dispatcher = dispatcher;
         _configService = configService;
-        _config = _configService.Load();
-        _dataPath = _config.DataPath;
+        _dispatcher = dispatcher;
         _processManager = new SitlProcessManager();
 
         _processManager.Exited += OnProcessExited;
     }
 
     /// <summary>
-    /// Available SITL versions (scanned from DataPath/Versions).
+    /// Available SITL versions.
     /// </summary>
     public IReadOnlyList<SitlVersion> Versions { get; private set; } = [];
 
     /// <summary>
     /// Configured airports.
     /// </summary>
-    public IReadOnlyList<Airport> Airports => _config.Airports;
+    public IReadOnlyList<Airport> Airports => _configService.Airports;
 
     /// <summary>
     /// Configured serial port arguments.
     /// </summary>
-    public IReadOnlyList<SerialPortConfig> SerialPorts => _config.SerialPorts;
+    public IReadOnlyList<SerialPortConfig> SerialPorts => _configService.SerialPorts;
 
     /// <summary>
     /// Whether a SITL process is currently running.
@@ -52,12 +48,12 @@ public class LauncherService : IDisposable
     /// <summary>
     /// Last selected version name (persisted).
     /// </summary>
-    public string? LastSelectedVersion => _config.LastSelectedVersion;
+    public string? LastSelectedVersion => _configService.LastSelectedVersion;
 
     /// <summary>
     /// Last selected aircraft name (persisted).
     /// </summary>
-    public string? LastSelectedAircraft => _config.LastSelectedAircraft;
+    public string? LastSelectedAircraft => _configService.LastSelectedAircraft;
 
     /// <summary>
     /// Raised when the process state changes (started, exited).
@@ -70,7 +66,7 @@ public class LauncherService : IDisposable
     /// </summary>
     public void ScanVersions()
     {
-        var versionsPath = Path.Combine(_dataPath, "Versions");
+        var versionsPath = Path.Combine(_configService.DataPath, "Versions");
         var scanner = new VersionScanner(versionsPath);
         Versions = scanner.Scan();
     }
@@ -80,9 +76,7 @@ public class LauncherService : IDisposable
     /// </summary>
     public string? GetLastAirportForAircraft(string aircraftName)
     {
-        return _config.LastAirportPerAircraft.TryGetValue(aircraftName, out var airport)
-            ? airport
-            : null;
+        return _configService.GetLastAirportForAircraft(aircraftName);
     }
 
     /// <summary>
@@ -93,39 +87,22 @@ public class LauncherService : IDisposable
         if (IsRunning)
             throw new InvalidOperationException("A process is already running.");
 
-        // Save selections
-        _config = _config with
-        {
-            LastSelectedVersion = version.Name,
-            LastSelectedAircraft = aircraft.Name,
-            LastAirportPerAircraft = new(_config.LastAirportPerAircraft)
-            {
-                [aircraft.Name] = airport.Name
-            }
-        };
-
-        // Check if version changed for this aircraft - sync if needed
-        var runtimeRoot = Path.Combine(_dataPath, "Runtime");
+        // Sync runtime if version changed for this aircraft
+        var runtimeRoot = Path.Combine(_configService.DataPath, "Runtime");
         var runtimeAircraftPath = Path.Combine(runtimeRoot, aircraft.Name);
 
-        if (!_config.LastVersionPerAircraft.TryGetValue(aircraft.Name, out var lastVersion)
-            || lastVersion != version.Name)
+        var lastVersion = _configService.GetLastVersionForAircraft(aircraft.Name);
+        if (lastVersion != version.Name)
         {
             RuntimeSyncService.SyncToRuntime(aircraft.Path, runtimeAircraftPath);
-            _config = _config with
-            {
-                LastVersionPerAircraft = new(_config.LastVersionPerAircraft)
-                {
-                    [aircraft.Name] = version.Name
-                }
-            };
         }
         else
         {
             RuntimeSyncService.EnsureRuntimeDirectory(runtimeRoot, aircraft.Name);
         }
 
-        _configService.Save(_config);
+        // Record selections (this also persists)
+        _configService.RecordLaunch(version.Name, aircraft.Name, airport.Name);
 
         // Build launch params
         var launchParams = new SitlLaunchParams
@@ -135,7 +112,7 @@ public class LauncherService : IDisposable
             ModelArg = aircraft.FrameConfig.ModelArg,
             DefaultsFile = "defaults.parm",
             Location = airport.Location,
-            SerialPortArgs = _config.SerialPorts.Select(s => s.Argument).ToList()
+            SerialPortArgs = _configService.SerialPorts.Select(s => s.Argument).ToList()
         };
 
         _processManager.Launch(launchParams);
