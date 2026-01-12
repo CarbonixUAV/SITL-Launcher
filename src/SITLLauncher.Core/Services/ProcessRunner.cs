@@ -1,21 +1,20 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-using SITLLauncher.Core.Models;
 
 namespace SITLLauncher.Core.Services;
 
 /// <summary>
-/// Manages the lifecycle of a SITL process.
+/// Manages the lifecycle of a single process with output capture.
 /// </summary>
-public class SitlProcessManager : IDisposable
+public class ProcessRunner : IDisposable
 {
     private Process? _process;
     private readonly object _lock = new();
     private readonly StringBuilder _outputBuffer = new();
 
     /// <summary>
-    /// Whether a SITL process is currently running.
+    /// Whether a process is currently running.
     /// </summary>
     public bool IsRunning
     {
@@ -50,19 +49,10 @@ public class SitlProcessManager : IDisposable
     }
 
     /// <summary>
-    /// Launches SITL with the given parameters.
+    /// Launches a process with the given executable and arguments.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if a process is already running.</exception>
-    public void Launch(SitlLaunchParams launchParams)
-    {
-        var args = BuildArguments(launchParams);
-        LaunchRaw(launchParams.ExecutablePath, args, launchParams.WorkingDirectory);
-    }
-
-    /// <summary>
-    /// Launches a process with raw executable and arguments.
-    /// </summary>
-    internal void LaunchRaw(string executable, string arguments, string? workingDirectory = null)
+    public void Launch(string executable, string arguments, string? workingDirectory = null)
     {
         lock (_lock)
         {
@@ -106,31 +96,6 @@ public class SitlProcessManager : IDisposable
 
             _process.Kill(entireProcessTree: true);
         }
-    }
-
-    /// <summary>
-    /// Builds the command-line arguments for SITL from launch parameters.
-    /// </summary>
-    public static string BuildArguments(SitlLaunchParams p)
-    {
-        var sb = new StringBuilder();
-
-        // Model (frame type)
-        sb.Append($"-M {p.ModelArg}");
-
-        // Location
-        sb.Append($" -O {p.Location}");
-
-        // Defaults file
-        sb.Append($" --defaults {p.DefaultsFile}");
-
-        // Serial ports
-        foreach (var serialArg in p.SerialPortArgs)
-        {
-            sb.Append($" {serialArg}");
-        }
-
-        return sb.ToString();
     }
 
     private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)

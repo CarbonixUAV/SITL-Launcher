@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using SITLLauncher.Core.Models;
 
 namespace SITLLauncher.Core.Services;
@@ -14,15 +15,15 @@ public class LauncherService : IDisposable
 {
     private readonly IUiDispatcher _dispatcher;
     private readonly ConfigService _configService;
-    private readonly SitlProcessManager _processManager;
+    private readonly ProcessRunner _processRunner;
 
     public LauncherService(ConfigService configService, IUiDispatcher dispatcher)
     {
         _configService = configService;
         _dispatcher = dispatcher;
-        _processManager = new SitlProcessManager();
+        _processRunner = new ProcessRunner();
 
-        _processManager.Exited += OnProcessExited;
+        _processRunner.Exited += OnProcessExited;
     }
 
     /// <summary>
@@ -43,7 +44,7 @@ public class LauncherService : IDisposable
     /// <summary>
     /// Whether a SITL process is currently running.
     /// </summary>
-    public bool IsRunning => _processManager.IsRunning;
+    public bool IsRunning => _processRunner.IsRunning;
 
     /// <summary>
     /// Last selected version name (persisted).
@@ -104,18 +105,16 @@ public class LauncherService : IDisposable
         // Record selections (this also persists)
         _configService.RecordLaunch(version.Name, aircraft.Name, airport.Name);
 
-        // Build launch params
-        var launchParams = new SitlLaunchParams
-        {
-            ExecutablePath = aircraft.FrameConfig.ExecutablePath,
-            WorkingDirectory = runtimeAircraftPath,
-            ModelArg = aircraft.FrameConfig.ModelArg,
-            DefaultsFile = "defaults.parm",
-            Location = airport.Location,
-            SerialPortArgs = _configService.SerialPorts.Select(s => s.Argument).ToList()
-        };
+        // Build SITL arguments
+        var args = BuildSitlArguments(
+            aircraft.FrameConfig.ModelArg,
+            airport.Location,
+            _configService.SerialPorts.Select(s => s.Argument));
 
-        _processManager.Launch(launchParams);
+        _processRunner.Launch(
+            aircraft.FrameConfig.ExecutablePath,
+            args,
+            runtimeAircraftPath);
 
         _dispatcher.Post(() => StateChanged?.Invoke(this, new ProcessStateEventArgs(
             true, $"Running: {aircraft.Name}")));
@@ -126,7 +125,25 @@ public class LauncherService : IDisposable
     /// </summary>
     public void Kill()
     {
-        _processManager.Kill();
+        _processRunner.Kill();
+    }
+
+    private static string BuildSitlArguments(
+        string modelArg,
+        string location,
+        IEnumerable<string> serialPortArgs)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"-M {modelArg}");
+        sb.Append($" -O {location}");
+        sb.Append(" --defaults defaults.parm");
+
+        foreach (var serialArg in serialPortArgs)
+        {
+            sb.Append($" {serialArg}");
+        }
+
+        return sb.ToString();
     }
 
     private void OnProcessExited(object? sender, int exitCode)
@@ -137,8 +154,8 @@ public class LauncherService : IDisposable
 
     public void Dispose()
     {
-        _processManager.Exited -= OnProcessExited;
-        _processManager.Dispose();
+        _processRunner.Exited -= OnProcessExited;
+        _processRunner.Dispose();
     }
 }
 
