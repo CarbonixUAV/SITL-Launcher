@@ -1,0 +1,160 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SITLLauncher.Core.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="400"
+        x:Class="SITLLauncher.Desktop.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Settings"
+        Width="550" Height="400"
+        MinWidth="450" MinHeight="350"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel/>
+    </Design.DataContext>
+
+    <Grid Margin="16" RowDefinitions="*,Auto">
+        <TabControl Grid.Row="0">
+            <!-- Airports Tab -->
+            <TabItem Header="Airports">
+                <Grid RowDefinitions="*,Auto" Margin="8">
+                    <DataGrid Grid.Row="0"
+                              ItemsSource="{Binding Airports}"
+                              SelectedItem="{Binding SelectedAirport}"
+                              AutoGenerateColumns="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="False"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name"
+                                                Binding="{Binding Name}"
+                                                Width="150"/>
+                            <DataGridTextColumn Header="Location (lat,lon,alt,hdg)"
+                                                Binding="{Binding Location}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="1"
+                                Orientation="Horizontal"
+                                Margin="0,8,0,0">
+                        <Button Content="Add"
+                                Command="{Binding AddAirportCommand}"
+                                Width="80"/>
+                        <Button Content="Remove"
+                                Command="{Binding RemoveAirportCommand}"
+                                Margin="8,0,0,0"
+                                Width="80"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Serial Ports Tab -->
+            <TabItem Header="Serial Ports">
+                <Grid RowDefinitions="*,Auto" Margin="8">
+                    <DataGrid Grid.Row="0"
+                              ItemsSource="{Binding SerialPorts}"
+                              SelectedItem="{Binding SelectedSerialPort}"
+                              AutoGenerateColumns="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="False"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Argument"
+                                                Binding="{Binding Argument}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="1"
+                                Orientation="Horizontal"
+                                Margin="0,8,0,0">
+                        <Button Content="Add"
+                                Command="{Binding AddSerialPortCommand}"
+                                Width="80"/>
+                        <Button Content="Remove"
+                                Command="{Binding RemoveSerialPortCommand}"
+                                Margin="8,0,0,0"
+                                Width="80"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Versions Tab -->
+            <TabItem Header="Versions">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="8">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Text="Data Path" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding DataPath}"
+                                 Watermark="Path to Versions and Runtime folders"/>
+                    </StackPanel>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Versions}"
+                              SelectedItem="{Binding SelectedVersion}"
+                              AutoGenerateColumns="False"
+                              CanUserReorderColumns="False"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Version"
+                                                Binding="{Binding Name}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2"
+                                Orientation="Horizontal"
+                                Margin="0,8,0,0">
+                        <Button Content="Delete"
+                                Command="{Binding DeleteVersionCommand}"
+                                Width="80"/>
+                        <TextBlock Text="Drop .7z files here to install"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.6"
+                                   Margin="16,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Maintenance Tab -->
+            <TabItem Header="Maintenance">
+                <StackPanel Margin="8" Spacing="16">
+                    <Border BorderBrush="{DynamicResource TextControlBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Clear Runtime Data"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Deletes all runtime folders (eeprom, logs, terrain cache). Aircraft configurations in Versions are preserved."
+                                       TextWrapping="Wrap"
+                                       Opacity="0.7"/>
+                            <Button Content="Clear Runtimes"
+                                    Command="{Binding ClearRuntimesCommand}"
+                                    HorizontalAlignment="Left"
+                                    Width="120"
+                                    Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <!-- Bottom Buttons -->
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <Button Content="Save"
+                    Click="OnSaveClick"
+                    Width="80"/>
+            <Button Content="Cancel"
+                    Click="OnCancelClick"
+                    Margin="8,0,0,0"
+                    Width="80"/>
+        </StackPanel>
+    </Grid>
+</Window>

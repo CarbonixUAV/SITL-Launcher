@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -16,6 +17,9 @@ namespace SITLLauncher.Desktop;
 
 public partial class App : Application
 {
+    private ConfigService? _configService;
+    private LauncherService? _launcher;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -30,19 +34,33 @@ public partial class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            var configService = new ConfigService(
-                System.IO.Path.Combine(System.AppContext.BaseDirectory, "config.json"));
-            var launcher = new LauncherService(
-                configService,
+            _configService = new ConfigService(
+                Path.Combine(AppContext.BaseDirectory, "config.json"));
+            _launcher = new LauncherService(
+                _configService,
                 new AvaloniaUiDispatcher());
 
-            desktop.MainWindow = new MainWindow
+            var mainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(launcher),
+                DataContext = new MainWindowViewModel(_launcher),
             };
+            mainWindow.SettingsRequested += OnSettingsRequested;
+
+            desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async void OnSettingsRequested(object? sender, EventArgs e)
+    {
+        if (_configService is null || _launcher is null) return;
+        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow: not null } desktop) return;
+
+        var settingsVm = new SettingsViewModel(_configService, _ => _launcher.ScanVersions());
+        var settingsWindow = new SettingsWindow { DataContext = settingsVm };
+
+        await settingsWindow.ShowDialog<bool?>(desktop.MainWindow);
     }
 
     private void SetupExceptionHandling()

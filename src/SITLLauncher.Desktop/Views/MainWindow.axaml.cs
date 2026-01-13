@@ -16,10 +16,17 @@ public partial class MainWindow : Window
     private const double ScrollBottomThreshold = 50;
     private bool _autoScroll = true;
 
+    public event EventHandler? SettingsRequested;
+
     public MainWindow()
     {
         InitializeComponent();
         SetupAutoScroll();
+    }
+
+    private void OnSettingsClick(object? sender, RoutedEventArgs e)
+    {
+        SettingsRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void SetupAutoScroll()

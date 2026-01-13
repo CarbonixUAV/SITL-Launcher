@@ -20,9 +20,10 @@
     </Design.DataContext>
 
     <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
-        <!-- Version -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,8">
-            <TextBlock Text="Version" Margin="0,0,0,4"/>
+        <!-- Version with Settings Button -->
+        <Grid Grid.Row="0" Margin="0,0,0,8" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Version" Margin="0,0,0,4"/>
             <ComboBox ItemsSource="{Binding Versions}"
                       SelectedItem="{Binding SelectedVersion}"
                       HorizontalAlignment="Stretch">
@@ -32,7 +33,16 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-        </StackPanel>
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="&#x2699;"
+                    Click="OnSettingsClick"
+                    ToolTip.Tip="Settings"
+                    FontSize="16"
+                    Padding="8,4"
+                    VerticalAlignment="Bottom"
+                    Margin="8,0,0,0"/>
+        </Grid>
 
         <!-- Aircraft -->
         <StackPanel Grid.Row="1" Margin="0,0,0,8">
