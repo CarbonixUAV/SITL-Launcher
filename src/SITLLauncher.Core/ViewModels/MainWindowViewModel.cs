@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -50,6 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _launcher = launcher;
         _launcher.StateChanged += OnStateChanged;
         _launcher.OutputReceived += OnOutputReceived;
+        _launcher.ConfigChanged += OnConfigChanged;
 
         LoadData();
     }
@@ -67,6 +69,28 @@ public partial class MainWindowViewModel : ViewModelBase
             SelectedVersion = Versions.FirstOrDefault(v => v.Name == _launcher.LastSelectedVersion);
         }
         SelectedVersion ??= Versions.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Reloads data after settings change.
+    /// </summary>
+    public void ReloadData()
+    {
+        var previousVersion = SelectedVersion?.Name;
+        var previousAircraft = SelectedAircraft?.Name;
+        var previousAirport = SelectedAirport?.Name;
+
+        LoadData();
+
+        // Try to restore previous selections
+        if (previousVersion is not null)
+            SelectedVersion = Versions.FirstOrDefault(v => v.Name == previousVersion) ?? Versions.FirstOrDefault();
+
+        if (previousAircraft is not null)
+            SelectedAircraft = Aircraft.FirstOrDefault(a => a.Name == previousAircraft) ?? Aircraft.FirstOrDefault();
+
+        if (previousAirport is not null)
+            SelectedAirport = Airports.FirstOrDefault(a => a.Name == previousAirport) ?? Airports.FirstOrDefault();
     }
 
     partial void OnSelectedVersionChanged(SitlVersion? value)
@@ -132,5 +156,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         // Already on UI thread - guaranteed by LauncherService
         OutputLines.Add(line);
+    }
+
+    private void OnConfigChanged(object? sender, EventArgs e)
+    {
+        // Already on UI thread - guaranteed by LauncherService
+        ReloadData();
     }
 }

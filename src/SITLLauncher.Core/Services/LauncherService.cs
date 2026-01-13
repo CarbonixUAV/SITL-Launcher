@@ -25,6 +25,7 @@ public class LauncherService : IDisposable
 
         _processRunner.Exited += OnProcessExited;
         _processRunner.OutputReceived += OnOutputReceived;
+        _configService.ConfigChanged += OnConfigChanged;
     }
 
     /// <summary>
@@ -68,6 +69,12 @@ public class LauncherService : IDisposable
     /// Guaranteed to fire on UI thread.
     /// </summary>
     public event EventHandler<string>? OutputReceived;
+
+    /// <summary>
+    /// Raised when configuration changes.
+    /// Guaranteed to fire on UI thread.
+    /// </summary>
+    public event EventHandler? ConfigChanged;
 
     /// <summary>
     /// Scans for available versions in the data path.
@@ -164,10 +171,16 @@ public class LauncherService : IDisposable
         _dispatcher.Post(() => OutputReceived?.Invoke(this, line));
     }
 
+    private void OnConfigChanged(object? sender, EventArgs e)
+    {
+        _dispatcher.Post(() => ConfigChanged?.Invoke(this, EventArgs.Empty));
+    }
+
     public void Dispose()
     {
         _processRunner.Exited -= OnProcessExited;
         _processRunner.OutputReceived -= OnOutputReceived;
+        _configService.ConfigChanged -= OnConfigChanged;
         _processRunner.Dispose();
     }
 }

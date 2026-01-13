@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using SITLLauncher.Core.Models;
 
@@ -12,6 +14,11 @@ public class ConfigService
 {
     private readonly string _configPath;
     private LauncherConfig _config;
+
+    /// <summary>
+    /// Raised when configuration changes that may affect UI state.
+    /// </summary>
+    public event EventHandler? ConfigChanged;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -89,6 +96,44 @@ public class ConfigService
             }
         };
         Save();
+    }
+
+    /// <summary>
+    /// Updates the list of airports and persists.
+    /// </summary>
+    public void UpdateAirports(IEnumerable<Airport> airports)
+    {
+        _config = _config with { Airports = airports.ToList() };
+        Save();
+        ConfigChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Updates the list of serial ports and persists.
+    /// </summary>
+    public void UpdateSerialPorts(IEnumerable<SerialPortConfig> serialPorts)
+    {
+        _config = _config with { SerialPorts = serialPorts.ToList() };
+        Save();
+        ConfigChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Updates the data path and persists.
+    /// </summary>
+    public void UpdateDataPath(string dataPath)
+    {
+        _config = _config with { DataPath = dataPath };
+        Save();
+        ConfigChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Notifies listeners that external changes may have occurred (e.g., version deleted).
+    /// </summary>
+    public void NotifyExternalChange()
+    {
+        ConfigChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private LauncherConfig Load()
