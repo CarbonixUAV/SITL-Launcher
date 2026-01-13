@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -9,6 +11,8 @@ namespace SITLLauncher.Desktop.Views;
 
 public partial class MainWindow : Window
 {
+    public static readonly BoolToDoubleConverter BoolToDouble = new();
+
     private const double ScrollBottomThreshold = 50;
     private bool _autoScroll = true;
 
@@ -64,5 +68,27 @@ public partial class MainWindow : Window
             var text = string.Join(Environment.NewLine, vm.OutputLines);
             await Clipboard.SetTextAsync(text);
         }
+    }
+
+    /// <summary>
+    /// Converts a boolean to one of two double values.
+    /// ConverterParameter format: "trueValue,falseValue" (e.g., "450,250")
+    /// </summary>
+    public class BoolToDoubleConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (parameter is not string param || !param.Contains(','))
+                return 0.0;
+
+            var parts = param.Split(',');
+            var trueValue = double.Parse(parts[0], CultureInfo.InvariantCulture);
+            var falseValue = double.Parse(parts[1], CultureInfo.InvariantCulture);
+
+            return value is true ? trueValue : falseValue;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotSupportedException();
     }
 }
