@@ -84,13 +84,41 @@
 
             <!-- Versions Tab -->
             <TabItem Header="Versions">
-                <Grid RowDefinitions="Auto,*,Auto" Margin="8">
+                <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="8">
                     <StackPanel Grid.Row="0" Margin="0,0,0,8">
                         <TextBlock Text="Data Path" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding DataPath}"
                                  Watermark="Path to Versions and Runtime folders"/>
                     </StackPanel>
-                    <DataGrid Grid.Row="1"
+
+                    <!-- Drop Zone -->
+                    <Border Grid.Row="1"
+                            Name="DropZone"
+                            DragDrop.AllowDrop="True"
+                            BorderBrush="{DynamicResource TextControlBorderBrush}"
+                            BorderThickness="2"
+                            CornerRadius="4"
+                            Padding="16"
+                            Margin="0,0,0,8"
+                            Background="Transparent">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                            <TextBlock Text="📦" FontSize="32" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Drop .7z archive here to install"
+                                       HorizontalAlignment="Center"
+                                       Opacity="0.7"/>
+                            <TextBlock Text="{Binding InstallStatus}"
+                                       HorizontalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       IsVisible="{Binding IsInstalling}"/>
+                            <ProgressBar Value="{Binding InstallProgress}"
+                                         Width="200"
+                                         Height="4"
+                                         IsVisible="{Binding IsInstalling}"
+                                         IsIndeterminate="False"/>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid Grid.Row="2"
                               ItemsSource="{Binding Versions}"
                               SelectedItem="{Binding SelectedVersion}"
                               AutoGenerateColumns="False"
@@ -98,23 +126,21 @@
                               CanUserResizeColumns="True"
                               CanUserSortColumns="False"
                               IsReadOnly="True"
-                              GridLinesVisibility="Horizontal">
+                              GridLinesVisibility="Horizontal"
+                              MaxHeight="150">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Version"
+                            <DataGridTextColumn Header="Installed Versions"
                                                 Binding="{Binding Name}"
                                                 Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <StackPanel Grid.Row="2"
+
+                    <StackPanel Grid.Row="3"
                                 Orientation="Horizontal"
                                 Margin="0,8,0,0">
                         <Button Content="Delete"
                                 Command="{Binding DeleteVersionCommand}"
                                 Width="80"/>
-                        <TextBlock Text="Drop .7z files here to install"
-                                   VerticalAlignment="Center"
-                                   Opacity="0.6"
-                                   Margin="16,0,0,0"/>
                     </StackPanel>
                 </Grid>
             </TabItem>

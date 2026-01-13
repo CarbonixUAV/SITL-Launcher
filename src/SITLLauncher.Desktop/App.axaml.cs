@@ -57,7 +57,9 @@ public partial class App : Application
         if (_configService is null || _launcher is null) return;
         if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow: not null } desktop) return;
 
-        var settingsVm = new SettingsViewModel(_configService, _ => _launcher.ScanVersions());
+        var versionsPath = Path.Combine(_configService.DataPath, "Versions");
+        var versionInstaller = new VersionInstaller(versionsPath);
+        var settingsVm = new SettingsViewModel(_configService, versionInstaller, _ => _launcher.ScanVersions());
         var settingsWindow = new SettingsWindow { DataContext = settingsVm };
 
         await settingsWindow.ShowDialog<bool?>(desktop.MainWindow);

@@ -13,6 +13,7 @@ namespace SITLLauncher.Core.ViewModels;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly ConfigService _configService;
+    private readonly VersionInstaller _versionInstaller;
     private readonly Action<string>? _rescanVersions;
 
     [ObservableProperty]
@@ -36,7 +37,16 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _dataPath = "";
 
-    public SettingsViewModel() : this(null!, null)
+    [ObservableProperty]
+    private bool _isInstalling;
+
+    [ObservableProperty]
+    private double _installProgress;
+
+    [ObservableProperty]
+    private string _installStatus = "";
+
+    public SettingsViewModel() : this(null!, null!, null)
     {
         // Design-time data
         Airports =
@@ -57,9 +67,10 @@ public partial class SettingsViewModel : ViewModelBase
         DataPath = "C:/Data/SITLLauncher";
     }
 
-    public SettingsViewModel(ConfigService configService, Action<string>? rescanVersions)
+    public SettingsViewModel(ConfigService configService, VersionInstaller versionInstaller, Action<string>? rescanVersions)
     {
         _configService = configService;
+        _versionInstaller = versionInstaller;
         _rescanVersions = rescanVersions;
 
         if (configService is null) return;
@@ -201,6 +212,47 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 // TODO: Show error dialog
             }
+        }
+    }
+
+    [RelayCommand]
+    private async System.Threading.Tasks.Task InstallVersion(string archivePath)
+    {
+        if (string.IsNullOrWhiteSpace(archivePath))
+            return;
+
+        IsInstalling = true;
+        InstallProgress = 0;
+        InstallStatus = "Extracting archive...";
+
+        try
+        {
+            var progress = new Progress<double>(p =>
+            {
+                InstallProgress = p * 100;
+            });
+
+            var installedPath = await System.Threading.Tasks.Task.Run(() =>
+                _versionInstaller.Install(archivePath, progress));
+
+            InstallStatus = "Installation complete!";
+            LoadVersions();
+            _rescanVersions?.Invoke(_configService.DataPath);
+            _configService.NotifyExternalChange();
+
+            // Reset after a brief delay
+            await System.Threading.Tasks.Task.Delay(1500);
+            IsInstalling = false;
+            InstallProgress = 0;
+            InstallStatus = "";
+        }
+        catch (Exception ex)
+        {
+            InstallStatus = $"Installation failed: {ex.Message}";
+            await System.Threading.Tasks.Task.Delay(3000);
+            IsInstalling = false;
+            InstallProgress = 0;
+            InstallStatus = "";
         }
     }
 
