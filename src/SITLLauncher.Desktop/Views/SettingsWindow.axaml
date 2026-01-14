@@ -7,8 +7,8 @@
         x:Class="SITLLauncher.Desktop.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Settings"
-        Width="550" Height="400"
-        MinWidth="450" MinHeight="350"
+        Width="600" Height="450"
+        MinWidth="600" MinHeight="450"
         WindowStartupLocation="CenterOwner">
 
     <Design.DataContext>
@@ -84,39 +84,23 @@
 
             <!-- Versions Tab -->
             <TabItem Header="Versions">
-                <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="8">
+                <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="8">
                     <StackPanel Grid.Row="0" Margin="0,0,0,8">
                         <TextBlock Text="Data Path" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding DataPath}"
                                  Watermark="Path to Versions and Runtime folders"/>
                     </StackPanel>
 
-                    <!-- Drop Zone -->
-                    <Border Grid.Row="1"
-                            Name="DropZone"
-                            DragDrop.AllowDrop="True"
-                            BorderBrush="{DynamicResource TextControlBorderBrush}"
-                            BorderThickness="2"
-                            CornerRadius="4"
-                            Padding="16"
-                            Margin="0,0,0,8"
-                            Background="Transparent">
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                            <TextBlock Text="📦" FontSize="32" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Drop .7z archive here to install"
-                                       HorizontalAlignment="Center"
-                                       Opacity="0.7"/>
-                            <TextBlock Text="{Binding InstallStatus}"
-                                       HorizontalAlignment="Center"
-                                       FontWeight="SemiBold"
-                                       IsVisible="{Binding IsInstalling}"/>
-                            <ProgressBar Value="{Binding InstallProgress}"
-                                         Width="200"
-                                         Height="4"
-                                         IsVisible="{Binding IsInstalling}"
-                                         IsIndeterminate="False"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Install Button -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,8" Spacing="4">
+                        <Button Content="Install from .7z..."
+                                Click="OnBrowseArchiveClick"
+                                HorizontalAlignment="Left"
+                                Width="140"/>
+                        <TextBlock Text="Tip: You can also drag a .7z file anywhere onto the launcher to install."
+                                   Opacity="0.5"
+                                   FontSize="11"/>
+                    </StackPanel>
 
                     <DataGrid Grid.Row="2"
                               ItemsSource="{Binding Versions}"
@@ -127,6 +111,7 @@
                               CanUserSortColumns="False"
                               IsReadOnly="True"
                               GridLinesVisibility="Horizontal"
+                              VerticalAlignment="Top"
                               MaxHeight="150">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Installed Versions"

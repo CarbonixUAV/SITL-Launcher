@@ -1,51 +1,45 @@
-using System.Linq;
+using System;
+using System.IO;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using SITLLauncher.Core.ViewModels;
 
 namespace SITLLauncher.Desktop.Views;
 
 public partial class SettingsWindow : Window
 {
+    public event EventHandler? VersionInstalled;
+
     public SettingsWindow()
     {
         InitializeComponent();
-        AddHandler(DragDrop.DropEvent, OnDrop);
-        AddHandler(DragDrop.DragOverEvent, OnDragOver);
     }
 
-    private void OnDragOver(object? sender, DragEventArgs e)
+    private async void OnBrowseArchiveClick(object? sender, RoutedEventArgs e)
     {
-        // Only allow Copy operation for .7z files
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (e.Data.Contains(DataFormats.Files))
-        {
-            var files = e.Data.GetFiles()?.ToList();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (files?.Any(f => f.Path.LocalPath.EndsWith(".7z", System.StringComparison.OrdinalIgnoreCase)) == true)
-            {
-                e.DragEffects = DragDropEffects.Copy;
-                return;
-            }
-        }
-        e.DragEffects = DragDropEffects.None;
-    }
+        if (DataContext is not SettingsViewModel vm) return;
 
-    private async void OnDrop(object? sender, DragEventArgs e)
-    {
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (e.Data.Contains(DataFormats.Files))
+        var options = new FilePickerOpenOptions
         {
-            var files = e.Data.GetFiles()?.ToList();
-#pragma warning restore CS0618 // Type or member is obsolete
-            var archiveFile = files?.FirstOrDefault(f =>
-                f.Path.LocalPath.EndsWith(".7z", System.StringComparison.OrdinalIgnoreCase));
+            Title = "Select SITL Version Archive",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("7z Archives") { Patterns = ["*.7z"] }
+            ]
+        };
 
-            if (archiveFile != null && DataContext is SettingsViewModel vm)
-            {
-                await vm.InstallVersionCommand.ExecuteAsync(archiveFile.Path.LocalPath);
-            }
+        var result = await StorageProvider.OpenFilePickerAsync(options);
+        if (result.Count == 0) return;
+
+        var versionsPath = Path.Combine(vm.DataPath, "Versions");
+        var success = await InstallProgressWindow.ShowAndInstallAsync(result[0].Path.LocalPath, versionsPath, this);
+
+        if (success)
+        {
+            vm.RefreshVersions();
+            VersionInstalled?.Invoke(this, EventArgs.Empty);
         }
     }
 

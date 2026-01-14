@@ -1,11 +1,10 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using SITLLauncher.Core.Services;
@@ -44,25 +43,12 @@ public partial class App : Application
             {
                 DataContext = new MainWindowViewModel(_launcher),
             };
-            mainWindow.SettingsRequested += OnSettingsRequested;
+            mainWindow.Initialize(_configService, _launcher.ScanVersions);
 
             desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private async void OnSettingsRequested(object? sender, EventArgs e)
-    {
-        if (_configService is null || _launcher is null) return;
-        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow: not null } desktop) return;
-
-        var versionsPath = Path.Combine(_configService.DataPath, "Versions");
-        var versionInstaller = new VersionInstaller(versionsPath);
-        var settingsVm = new SettingsViewModel(_configService, versionInstaller, _ => _launcher.ScanVersions());
-        var settingsWindow = new SettingsWindow { DataContext = settingsVm };
-
-        await settingsWindow.ShowDialog<bool?>(desktop.MainWindow);
     }
 
     private void SetupExceptionHandling()

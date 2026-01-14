@@ -11,7 +11,8 @@
         Title="SITL Launcher"
         Width="400" Height="300"
         MinWidth="350"
-        MinHeight="{Binding IsOutputExpanded, Converter={x:Static views:MainWindow.BoolToDouble}, ConverterParameter='510,250'}">
+        MinHeight="{Binding IsOutputExpanded, Converter={x:Static views:MainWindow.BoolToDouble}, ConverterParameter='510,250'}"
+        DragDrop.AllowDrop="True">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -19,6 +20,7 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
+    <Panel>
     <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
         <!-- Version with Settings Button -->
         <Grid Grid.Row="0" Margin="0,0,0,8" ColumnDefinitions="*,Auto">
@@ -125,4 +127,24 @@
                     Width="80"/>
         </Grid>
     </Grid>
+
+    <!-- Drag-and-drop overlay -->
+    <Border x:Name="DragOverlay"
+            Background="#E0202020"
+            IsVisible="False"
+            IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+            <TextBlock Text="Drop .7z to Install Version"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Release to install"
+                       Foreground="#B0B0B0"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Border>
+    </Panel>
 </Window>
