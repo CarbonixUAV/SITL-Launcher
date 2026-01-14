@@ -146,7 +146,7 @@ public class VersionInstaller(string versionsPath)
         }
     }
 
-    private static void ValidateVersion(string versionPath)
+    internal static void ValidateVersion(string versionPath)
     {
         // Check for at least one valid aircraft configuration
         var aircraftDirs = Directory.GetDirectories(versionPath);
