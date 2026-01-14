@@ -2,9 +2,21 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- Assembly metadata -->
+    <Version>1.0.0</Version>
+    <AssemblyTitle>SITL Launcher</AssemblyTitle>
+    <Product>SITL Launcher</Product>
+    <Company>Carbonix</Company>
+    <Description>ArduPilot SITL simulation launcher for pilot training and beta testing.</Description>
+    <Copyright>Copyright (c) Carbonix</Copyright>
+
+    <!-- Application icon -->
+    <ApplicationIcon>Assets\sitl-launcher.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

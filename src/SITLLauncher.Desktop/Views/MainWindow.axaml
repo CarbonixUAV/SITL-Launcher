@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         x:Class="SITLLauncher.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/sitl-launcher.ico"
         Title="SITL Launcher"
         Width="400" Height="300"
         MinWidth="350"
