@@ -19,19 +19,10 @@ public partial class SettingsViewModel : ViewModelBase
     private ObservableCollection<AirportViewModel> _airports = [];
 
     [ObservableProperty]
-    private AirportViewModel? _selectedAirport;
-
-    [ObservableProperty]
     private ObservableCollection<SerialPortViewModel> _serialPorts = [];
 
     [ObservableProperty]
-    private SerialPortViewModel? _selectedSerialPort;
-
-    [ObservableProperty]
     private ObservableCollection<VersionViewModel> _versions = [];
-
-    [ObservableProperty]
-    private VersionViewModel? _selectedVersion;
 
     [ObservableProperty]
     private string _dataPath = "";
@@ -41,13 +32,13 @@ public partial class SettingsViewModel : ViewModelBase
         // Design-time data
         Airports =
         [
-            new AirportViewModel { Name = "Riverstone", Location = "-33.6671869,150.8543972,27.8,0" },
-            new AirportViewModel { Name = "Test Airport", Location = "-34.0,151.0,10,90" }
+            new AirportViewModel(DeleteAirport) { Name = "Riverstone", Location = "-33.6671869,150.8543972,27.8,0" },
+            new AirportViewModel(DeleteAirport) { Name = "Test Airport", Location = "-34.0,151.0,10,90" }
         ];
         SerialPorts =
         [
-            new SerialPortViewModel { Argument = "--serial0 tcp:0" },
-            new SerialPortViewModel { Argument = "--serial1 udpclient:127.0.0.1:14550" }
+            new SerialPortViewModel(DeleteSerialPort) { Argument = "--serial0 tcp:0" },
+            new SerialPortViewModel(DeleteSerialPort) { Argument = "--serial1 udpclient:127.0.0.1:14550" }
         ];
         Versions =
         [
@@ -78,7 +69,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void LoadAirports()
     {
         Airports = new ObservableCollection<AirportViewModel>(
-            _configService.Airports.Select(a => new AirportViewModel
+            _configService.Airports.Select(a => new AirportViewModel(DeleteAirport)
             {
                 Name = a.Name,
                 Location = a.Location
@@ -88,7 +79,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void LoadSerialPorts()
     {
         SerialPorts = new ObservableCollection<SerialPortViewModel>(
-            _configService.SerialPorts.Select(s => new SerialPortViewModel
+            _configService.SerialPorts.Select(s => new SerialPortViewModel(DeleteSerialPort)
             {
                 Argument = s.Argument
             }));
@@ -104,7 +95,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
         var versionDirs = Directory.GetDirectories(versionsPath)
-            .Select(path => new VersionViewModel
+            .Select(path => new VersionViewModel(DeleteVersion)
             {
                 Name = Path.GetFileName(path),
                 Path = path
@@ -118,68 +109,39 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void AddAirport()
     {
-        var newAirport = new AirportViewModel { Name = "New Airport", Location = "0,0,0,0" };
+        var newAirport = new AirportViewModel(DeleteAirport) { Name = "New Airport", Location = "0,0,0,0" };
         Airports.Add(newAirport);
-        SelectedAirport = newAirport;
     }
 
-    [RelayCommand(CanExecute = nameof(CanRemoveAirport))]
-    private void RemoveAirport()
+    private void DeleteAirport(AirportViewModel? airport)
     {
-        if (SelectedAirport is not null)
-        {
-            Airports.Remove(SelectedAirport);
-            SelectedAirport = Airports.FirstOrDefault();
-        }
-    }
+        if (airport is null) return;
 
-    private bool CanRemoveAirport() => SelectedAirport is not null;
+        Airports.Remove(airport);
+    }
 
     [RelayCommand]
     private void AddSerialPort()
     {
-        var newPort = new SerialPortViewModel { Argument = "--serial0 tcp:0" };
+        var newPort = new SerialPortViewModel(DeleteSerialPort) { Argument = "--serial0 tcp:0" };
         SerialPorts.Add(newPort);
-        SelectedSerialPort = newPort;
     }
 
-    [RelayCommand(CanExecute = nameof(CanRemoveSerialPort))]
-    private void RemoveSerialPort()
+    private void DeleteSerialPort(SerialPortViewModel? serialPort)
     {
-        if (SelectedSerialPort is not null)
-        {
-            SerialPorts.Remove(SelectedSerialPort);
-            SelectedSerialPort = SerialPorts.FirstOrDefault();
-        }
+        if (serialPort is null) return;
+
+        SerialPorts.Remove(serialPort);
     }
 
-    private bool CanRemoveSerialPort() => SelectedSerialPort is not null;
-
-    partial void OnSelectedAirportChanged(AirportViewModel? value)
+    private void DeleteVersion(VersionViewModel? version)
     {
-        RemoveAirportCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnSelectedSerialPortChanged(SerialPortViewModel? value)
-    {
-        RemoveSerialPortCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnSelectedVersionChanged(VersionViewModel? value)
-    {
-        DeleteVersionCommand.NotifyCanExecuteChanged();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanDeleteVersion))]
-    private void DeleteVersion()
-    {
-        if (SelectedVersion is null) return;
+        if (version is null) return;
 
         try
         {
-            Directory.Delete(SelectedVersion.Path, recursive: true);
-            Versions.Remove(SelectedVersion);
-            SelectedVersion = Versions.FirstOrDefault();
+            Directory.Delete(version.Path, recursive: true);
+            Versions.Remove(version);
             _rescanVersions?.Invoke();
             _configService.NotifyExternalChange();
         }
@@ -188,8 +150,6 @@ public partial class SettingsViewModel : ViewModelBase
             // TODO: Show error dialog
         }
     }
-
-    private bool CanDeleteVersion() => SelectedVersion is not null;
 
     [RelayCommand]
     private void ClearRuntimes()
@@ -235,24 +195,60 @@ public partial class SettingsViewModel : ViewModelBase
 
 public partial class AirportViewModel : ObservableObject
 {
+    public AirportViewModel(Action<AirportViewModel> delete)
+    {
+        DeleteCommand = new RelayCommand(() => delete(this));
+    }
+
+    public AirportViewModel()
+    {
+        DeleteCommand = new RelayCommand(() => { });
+    }
+
     [ObservableProperty]
     private string _name = "";
 
     [ObservableProperty]
     private string _location = "";
+
+    public IRelayCommand DeleteCommand { get; }
 }
 
 public partial class SerialPortViewModel : ObservableObject
 {
+    public SerialPortViewModel(Action<SerialPortViewModel> delete)
+    {
+        DeleteCommand = new RelayCommand(() => delete(this));
+    }
+
+    public SerialPortViewModel()
+    {
+        DeleteCommand = new RelayCommand(() => { });
+    }
+
     [ObservableProperty]
     private string _argument = "";
+
+    public IRelayCommand DeleteCommand { get; }
 }
 
 public partial class VersionViewModel : ObservableObject
 {
+    public VersionViewModel(Action<VersionViewModel> delete)
+    {
+        DeleteCommand = new RelayCommand(() => delete(this));
+    }
+
+    public VersionViewModel()
+    {
+        DeleteCommand = new RelayCommand(() => { });
+    }
+
     [ObservableProperty]
     private string _name = "";
 
     [ObservableProperty]
     private string _path = "";
+
+    public IRelayCommand DeleteCommand { get; }
 }
