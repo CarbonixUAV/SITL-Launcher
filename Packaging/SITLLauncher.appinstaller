@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller Uri="https://carbonixuav.github.io/SITL-Launcher/SITLLauncher.appinstaller"
+              Version="1.0.0.0"
+              xmlns="http://schemas.microsoft.com/appx/appinstaller/2018">
+  <MainPackage Name="Carbonix.SITLLauncher"
+               Publisher="CN=Carbonix"
+               Version="1.0.0.0"
+               ProcessorArchitecture="x64"
+               Uri="https://carbonixuav.github.io/SITL-Launcher/SITLLauncher.msix" />
+  <UpdateSettings>
+    <OnLaunch HoursBetweenUpdateChecks="12" />
+    <AutomaticBackgroundTask />
+  </UpdateSettings>
+</AppInstaller>

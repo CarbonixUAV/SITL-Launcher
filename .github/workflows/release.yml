@@ -114,3 +114,25 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: '*.msix'
+
+      - name: Prepare GitHub Pages deployment
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.MSIX_VERSION }}"
+          $ghPagesDir = "gh-pages-deploy"
+          New-Item -ItemType Directory -Path $ghPagesDir -Force | Out-Null
+
+          # Copy MSIX with stable filename for auto-update URL
+          Copy-Item "SITLLauncher-${{ steps.version.outputs.VERSION }}.msix" "$ghPagesDir/SITLLauncher.msix"
+
+          # Update appinstaller with current version
+          $appinstaller = Get-Content "Packaging/SITLLauncher.appinstaller" -Raw
+          $appinstaller = $appinstaller -replace 'Version="1.0.0.0"', "Version=`"$version`""
+          Set-Content "$ghPagesDir/SITLLauncher.appinstaller" $appinstaller
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages-deploy
+          keep_files: false
