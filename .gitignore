@@ -21,3 +21,8 @@ Desktop.ini
 
 # Config (user-specific)
 config.json
+
+# Publishing output
+publish/
+msix-layout/
+*.msix
