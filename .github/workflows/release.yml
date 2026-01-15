@@ -72,13 +72,18 @@ jobs:
           # Copy manifest
           Copy-Item -Path "Packaging/Package.appxmanifest" -Destination "$layoutDir/AppxManifest.xml"
 
-          # Find Windows SDK tools
+          # Find Windows SDK tools (filter for SDKs that have makepri.exe)
           $sdkPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64" |
+                     Where-Object { Test-Path (Join-Path $_.FullName "makepri.exe") } |
                      Sort-Object Name -Descending |
                      Select-Object -First 1
+          if (-not $sdkPath) {
+            throw "No Windows SDK with makepri.exe found"
+          }
           $makeappx = Join-Path $sdkPath.FullName "makeappx.exe"
           $makepri = Join-Path $sdkPath.FullName "makepri.exe"
           $signtool = Join-Path $sdkPath.FullName "signtool.exe"
+          Write-Host "Using SDK: $($sdkPath.FullName)"
 
           # Generate resources.pri for asset discovery (required for unplated icons)
           $priConfig = Join-Path $layoutDir "priconfig.xml"
