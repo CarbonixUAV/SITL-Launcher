@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using SITLLauncher.Core;
 using SITLLauncher.Core.Services;
 using SITLLauncher.Core.ViewModels;
 using SITLLauncher.Desktop.Services;
@@ -33,8 +34,9 @@ public partial class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
+            Directory.CreateDirectory(AppInfo.DataDirectory);
             _configService = new ConfigService(
-                Path.Combine(AppContext.BaseDirectory, "config.json"));
+                Path.Combine(AppInfo.DataDirectory, "config.json"));
             _launcher = new LauncherService(
                 _configService,
                 new AvaloniaUiDispatcher());

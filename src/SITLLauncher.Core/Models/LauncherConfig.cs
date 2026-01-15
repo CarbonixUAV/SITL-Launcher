@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace SITLLauncher.Core.Models;
 
@@ -9,8 +7,7 @@ namespace SITLLauncher.Core.Models;
 /// </summary>
 public record LauncherConfig
 {
-    private static string DefaultDataPath =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SITLLauncher");
+    private static string DefaultDataPath => AppInfo.DataDirectory;
 
     private static List<Airport> DefaultAirports =>
     [
