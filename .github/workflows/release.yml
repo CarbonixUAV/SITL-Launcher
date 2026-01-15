@@ -1,0 +1,116 @@
+name: Build and Release MSIX
+
+on:
+  release:
+    types: [created]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.release.tag_name }}".TrimStart('v')
+          # MSIX requires 4-part version
+          $msixVersion = "$version.0"
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "MSIX_VERSION=$msixVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Update version in manifest
+        shell: pwsh
+        run: |
+          $manifest = Get-Content "Packaging/Package.appxmanifest" -Raw
+          $manifest = $manifest -replace 'Version="1.0.0.0"', 'Version="${{ steps.version.outputs.MSIX_VERSION }}"'
+          Set-Content "Packaging/Package.appxmanifest" $manifest
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish application
+        run: |
+          dotnet publish src/SITLLauncher.Desktop/SITLLauncher.Desktop.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -p:Version=${{ steps.version.outputs.VERSION }} `
+            -o publish
+
+      - name: Decode signing certificate
+        shell: pwsh
+        run: |
+          $pfxBytes = [Convert]::FromBase64String("${{ secrets.SIGNING_CERTIFICATE_BASE64 }}")
+          [IO.File]::WriteAllBytes("certificate.pfx", $pfxBytes)
+
+      - name: Create MSIX package
+        shell: pwsh
+        run: |
+          # Copy published files to package layout
+          $layoutDir = "msix-layout"
+          New-Item -ItemType Directory -Path $layoutDir -Force | Out-Null
+
+          # Copy application files
+          Copy-Item -Path "publish/*" -Destination $layoutDir -Recurse
+
+          # Copy assets
+          Copy-Item -Path "Packaging/Assets" -Destination $layoutDir -Recurse
+
+          # Copy manifest
+          Copy-Item -Path "Packaging/Package.appxmanifest" -Destination "$layoutDir/AppxManifest.xml"
+
+          # Find Windows SDK tools
+          $sdkPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64" |
+                     Sort-Object Name -Descending |
+                     Select-Object -First 1
+          $makeappx = Join-Path $sdkPath.FullName "makeappx.exe"
+          $makepri = Join-Path $sdkPath.FullName "makepri.exe"
+          $signtool = Join-Path $sdkPath.FullName "signtool.exe"
+
+          # Generate resources.pri for asset discovery (required for unplated icons)
+          $priConfig = Join-Path $layoutDir "priconfig.xml"
+          & $makepri createconfig /cf $priConfig /dq en-US /o
+          & $makepri new /pr $layoutDir /cf $priConfig /of "$layoutDir/resources.pri" /o
+          Remove-Item $priConfig -Force
+
+          $msixPath = "SITLLauncher-${{ steps.version.outputs.VERSION }}.msix"
+
+          # Package
+          & $makeappx pack /d $layoutDir /p $msixPath /o
+
+          # Sign
+          & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}" $msixPath
+
+          echo "MSIX_PATH=$msixPath" >> $env:GITHUB_OUTPUT
+
+      - name: Clean up certificate
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path "certificate.pfx") {
+            Remove-Item "certificate.pfx" -Force
+          }
+
+      - name: Upload MSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SITLLauncher-${{ steps.version.outputs.VERSION }}
+          path: '*.msix'
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.msix'
