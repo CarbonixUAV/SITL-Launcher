@@ -17,6 +17,7 @@ Avalonia-based launcher for Carbonix's ArduPilot Software In The Loop (SITL) sim
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Code structure, data flow, key services (read before exploring)
 - [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) - Development roadmap and future enhancements
+- [Packaging/README.md](Packaging/README.md) - MSIX packaging and asset generation
 
 ## Conventions
 
