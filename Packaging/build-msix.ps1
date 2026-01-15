@@ -1,10 +1,9 @@
 # Build MSIX package locally
-# Usage: .\build-msix.ps1 [-Version 1.0.0] [-CertPath path\to\cert.pfx] [-CertPassword password]
+# Usage: .\build-msix.ps1 [-Version 1.0.0] [-CertThumbprint ABC123...]
 
 param(
     [string]$Version = "1.0.0",
-    [string]$CertPath,
-    [string]$CertPassword
+    [string]$CertThumbprint
 )
 
 $ErrorActionPreference = "Stop"
@@ -100,21 +99,11 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error "makeappx failed"
 }
 
-# Sign if certificate provided
-if ($CertPath) {
-    if (-not (Test-Path $CertPath)) {
-        Write-Error "Certificate not found: $CertPath"
-    }
-
+# Sign if certificate thumbprint provided
+if ($CertThumbprint) {
     Write-Host "`nSigning package..." -ForegroundColor Cyan
 
-    $signArgs = @("sign", "/fd", "SHA256", "/f", $CertPath)
-    if ($CertPassword) {
-        $signArgs += @("/p", $CertPassword)
-    }
-    $signArgs += $msixPath
-
-    & $signtool @signArgs
+    & $signtool sign /fd SHA256 /sha1 $CertThumbprint $msixPath
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "signtool failed"
@@ -123,7 +112,8 @@ if ($CertPath) {
     Write-Host "`nPackage signed successfully" -ForegroundColor Green
 } else {
     Write-Host "`nSkipping signing (no certificate provided)" -ForegroundColor Yellow
-    Write-Host "To sign: .\build-msix.ps1 -CertPath path\to\cert.pfx -CertPassword yourpassword"
+    Write-Host "To sign: .\build-msix.ps1 -CertThumbprint <thumbprint>"
+    Write-Host "Get thumbprint: (Get-ChildItem Cert:\CurrentUser\My | Where-Object Subject -eq 'CN=Carbonix').Thumbprint"
 }
 
 # Clean up
