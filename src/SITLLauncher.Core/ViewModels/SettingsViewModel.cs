@@ -127,6 +127,16 @@ public partial class SettingsViewModel : ViewModelBase
         SerialPorts.Add(newPort);
     }
 
+    [RelayCommand]
+    private void ResetSerialPortsToDefaults()
+    {
+        SerialPorts = new ObservableCollection<SerialPortViewModel>(
+            LauncherConfig.DefaultSerialPorts.Select(s => new SerialPortViewModel(DeleteSerialPort)
+            {
+                Argument = s.Argument
+            }));
+    }
+
     private void DeleteSerialPort(SerialPortViewModel? serialPort)
     {
         if (serialPort is null) return;

@@ -14,7 +14,7 @@ public record LauncherConfig
         new Airport { Name = "Riverstone", Location = "-33.6671869,150.8543972,27.8,0" }
     ];
 
-    private static List<SerialPortConfig> DefaultSerialPorts =>
+    public static List<SerialPortConfig> DefaultSerialPorts =>
     [
         new SerialPortConfig { Argument = "--serial0 udpclient:127.0.0.1:14550" },
         new SerialPortConfig { Argument = "--serial1 tcp:5762" },
