@@ -14,6 +14,13 @@ public record LauncherConfig
         new Airport { Name = "Riverstone", Location = "-33.6671869,150.8543972,27.8,0" }
     ];
 
+    private static List<SerialPortConfig> DefaultSerialPorts =>
+    [
+        new SerialPortConfig { Argument = "--serial0 udpclient:127.0.0.1:14550" },
+        new SerialPortConfig { Argument = "--serial1 tcp:5762" },
+        new SerialPortConfig { Argument = "--serial2 tcp:5763" }
+    ];
+
     /// <summary>
     /// Path where Versions and Runtime folders are stored.
     /// Defaults to %LOCALAPPDATA%\SITLLauncher.
@@ -28,7 +35,7 @@ public record LauncherConfig
     /// <summary>
     /// Serial port arguments to pass to SITL.
     /// </summary>
-    public List<SerialPortConfig> SerialPorts { get; init; } = [];
+    public List<SerialPortConfig> SerialPorts { get; init; } = DefaultSerialPorts;
 
     /// <summary>
     /// Last-used airport name per aircraft (key = aircraft name).
