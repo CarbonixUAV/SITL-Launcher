@@ -180,6 +180,34 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void ResetAll()
+    {
+        // Delete all versions
+        var versionsPath = Path.Combine(_configService.DataPath, "Versions");
+        if (Directory.Exists(versionsPath))
+        {
+            Directory.Delete(versionsPath, recursive: true);
+        }
+
+        // Delete runtime data
+        var runtimePath = Path.Combine(_configService.DataPath, "Runtime");
+        if (Directory.Exists(runtimePath))
+        {
+            Directory.Delete(runtimePath, recursive: true);
+        }
+
+        // Reset config to defaults
+        _configService.ResetToDefaults();
+
+        // Reload UI state
+        DataPath = _configService.DataPath;
+        LoadAirports();
+        LoadSerialPorts();
+        LoadVersions();
+        _rescanVersions?.Invoke();
+    }
+
+    [RelayCommand]
     private void Save()
     {
         // Save airports

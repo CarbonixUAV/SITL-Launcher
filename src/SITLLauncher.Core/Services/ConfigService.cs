@@ -136,6 +136,16 @@ public class ConfigService
         ConfigChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Resets configuration to defaults and persists.
+    /// </summary>
+    public void ResetToDefaults()
+    {
+        _config = new LauncherConfig();
+        Save();
+        ConfigChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     private LauncherConfig Load()
     {
         if (!File.Exists(_configPath))

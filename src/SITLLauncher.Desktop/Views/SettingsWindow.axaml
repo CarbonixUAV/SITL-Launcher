@@ -172,7 +172,23 @@
                             <Button Content="Clear Runtimes"
                                     Command="{Binding ClearRuntimesCommand}"
                                     HorizontalAlignment="Left"
-                                    Width="120"
+                                    Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border BorderBrush="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Reset All"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="Deletes all installed versions, runtime data, and resets configuration to defaults. This cannot be undone."
+                                       TextWrapping="Wrap"
+                                       Opacity="0.7"/>
+                            <Button Content="Reset All"
+                                    Command="{Binding ResetAllCommand}"
+                                    HorizontalAlignment="Left"
                                     Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
