@@ -43,7 +43,6 @@ Owns launcher configuration state and persists to config.json:
 - Airports list
 - Serial port configurations
 - Last-used selections (version, aircraft, airport per aircraft)
-- Data path (where Versions/ and Runtime/ live)
 
 Raises `ConfigChanged` event when settings are modified.
 
@@ -130,7 +129,7 @@ Settings UI state:
 
 - Airports DataGrid binding
 - Serial ports DataGrid binding
-- Data path selection
+- Installed versions list
 - Add/Remove/Save commands
 
 ## Data Flow
@@ -151,13 +150,12 @@ config.json structure:
 
 ```json
 {
-  "dataPath": "C:\\SITL",
   "airports": [
-    {"name": "YMAV", "latitude": -37.664, "longitude": 143.056, "altitude": 133, "heading": 90}
+    {"name": "YMAV", "location": "-37.664,143.056,133,90"}
   ],
   "serialPorts": [
-    {"argument": "tcp:0", "enabled": true},
-    {"argument": "udp:14550", "enabled": true}
+    {"argument": "--serial0 tcp:0"},
+    {"argument": "--serial1 udpclient:127.0.0.1:14550"}
   ],
   "lastSelectedVersion": "CxPilot-8.0.0-dev-b525b03b",
   "lastSelectedAircraft": "ottano-headless",
@@ -184,3 +182,16 @@ Set up in [Program.cs](src/SITLLauncher.Desktop/Program.cs):
 - SITL process runs on background thread
 - UI updates marshaled via `IUiDispatcher.InvokeAsync()`
 - `ProcessRunner` events raised on background thread, ViewModel handles marshaling
+
+## MSIX Packaging Notes
+
+Data lives in `%LOCALAPPDATA%\SITLLauncher`:
+
+- `config.json` - virtualized (auto-removed on uninstall)
+- `Versions/` - excluded from virtualization
+- `Runtime/` - excluded from virtualization
+
+The Versions and Runtime folders are excluded from MSIX file system virtualization
+(see [Package.appxmanifest](../Packaging/Package.appxmanifest)) because child processes
+(SITL exe) are not subject to virtualization and need real filesystem access to these
+folders.

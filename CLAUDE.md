@@ -29,6 +29,13 @@ Avalonia-based launcher for Carbonix's ArduPilot Software In The Loop (SITL) sim
 - When moving/renaming files, keep content identical to preserve git history
 - Cosmetic cleanups (whitespace, comments, formatting) belong in separate commits
 
+## MSIX Virtualization Warning
+
+The Versions/ and Runtime/ folders are excluded from MSIX file system virtualization
+because child processes (SITL exe) need real filesystem access. If you add new folders
+that child processes must access, you MUST also exclude them in Package.appxmanifest.
+See the "MSIX Packaging Notes" section in ARCHITECTURE.md for details.
+
 ## Git
 
 - Conventional Commits format
