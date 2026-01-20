@@ -24,9 +24,6 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<VersionViewModel> _versions = [];
 
-    [ObservableProperty]
-    private string _dataPath = "";
-
     public SettingsViewModel() : this(null!, null)
     {
         // Design-time data
@@ -45,7 +42,6 @@ public partial class SettingsViewModel : ViewModelBase
             new VersionViewModel { Name = "CxPilot-8.0.0-dev-abc123", Path = "C:/Data/Versions/CxPilot-8.0.0" },
             new VersionViewModel { Name = "CxPilot-7.5.0-stable", Path = "C:/Data/Versions/CxPilot-7.5.0" }
         ];
-        DataPath = "C:/Data/SITLLauncher";
     }
 
     public SettingsViewModel(ConfigService configService, Action? rescanVersions)
@@ -55,7 +51,6 @@ public partial class SettingsViewModel : ViewModelBase
 
         if (configService is null) return;
 
-        DataPath = configService.DataPath;
         LoadAirports();
         LoadSerialPorts();
         LoadVersions();
@@ -148,17 +143,10 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (version is null) return;
 
-        try
-        {
-            Directory.Delete(version.Path, recursive: true);
-            Versions.Remove(version);
-            _rescanVersions?.Invoke();
-            _configService.NotifyExternalChange();
-        }
-        catch (Exception)
-        {
-            // TODO: Show error dialog
-        }
+        Directory.Delete(version.Path, recursive: true);
+        Versions.Remove(version);
+        _rescanVersions?.Invoke();
+        _configService.NotifyExternalChange();
     }
 
     [RelayCommand]
@@ -167,15 +155,8 @@ public partial class SettingsViewModel : ViewModelBase
         var runtimePath = Path.Combine(_configService.DataPath, "Runtime");
         if (Directory.Exists(runtimePath))
         {
-            try
-            {
-                Directory.Delete(runtimePath, recursive: true);
-                _configService.NotifyExternalChange();
-            }
-            catch (Exception)
-            {
-                // TODO: Show error dialog
-            }
+            Directory.Delete(runtimePath, recursive: true);
+            _configService.NotifyExternalChange();
         }
     }
 
@@ -200,7 +181,6 @@ public partial class SettingsViewModel : ViewModelBase
         _configService.ResetToDefaults();
 
         // Reload UI state
-        DataPath = _configService.DataPath;
         LoadAirports();
         LoadSerialPorts();
         LoadVersions();
@@ -221,13 +201,6 @@ public partial class SettingsViewModel : ViewModelBase
             .Where(s => !string.IsNullOrWhiteSpace(s.Argument))
             .Select(s => new SerialPortConfig { Argument = s.Argument });
         _configService.UpdateSerialPorts(serialPorts);
-
-        // Save data path if changed
-        if (DataPath != _configService.DataPath)
-        {
-            _configService.UpdateDataPath(DataPath);
-            _rescanVersions?.Invoke();
-        }
     }
 }
 

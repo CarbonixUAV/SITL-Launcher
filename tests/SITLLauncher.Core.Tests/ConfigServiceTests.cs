@@ -31,7 +31,7 @@ public class ConfigServiceTests : IDisposable
 
         Assert.Single(service.Airports);
         Assert.Equal("Riverstone", service.Airports[0].Name);
-        Assert.Empty(service.SerialPorts);
+        Assert.Equal(3, service.SerialPorts.Count);
         Assert.Null(service.LastSelectedVersion);
         Assert.Null(service.LastSelectedAircraft);
     }

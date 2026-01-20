@@ -7,8 +7,6 @@ namespace SITLLauncher.Core.Models;
 /// </summary>
 public record LauncherConfig
 {
-    private static string DefaultDataPath => AppInfo.DataDirectory;
-
     private static List<Airport> DefaultAirports =>
     [
         new Airport { Name = "Riverstone", Location = "-33.6671869,150.8543972,27.8,0" }
@@ -20,12 +18,6 @@ public record LauncherConfig
         new SerialPortConfig { Argument = "--serial1 tcp:5762" },
         new SerialPortConfig { Argument = "--serial2 tcp:5763" }
     ];
-
-    /// <summary>
-    /// Path where Versions and Runtime folders are stored.
-    /// Defaults to %LOCALAPPDATA%\SITLLauncher.
-    /// </summary>
-    public string DataPath { get; init; } = DefaultDataPath;
 
     /// <summary>
     /// Available airports/locations.

@@ -11,7 +11,8 @@ public static class AppInfo
     private const string AppDataFolderName = "SITLLauncher";
 
     /// <summary>
-    /// Base directory for all app data (%LOCALAPPDATA%\SITLLauncher).
+    /// Directory for Versions and Runtime folders.
+    /// Always the real %LOCALAPPDATA%\SITLLauncher path so child processes can access it.
     /// </summary>
     public static string DataDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

@@ -105,15 +105,9 @@
 
             <!-- Versions Tab -->
             <TabItem Header="Versions">
-                <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="8">
-                    <StackPanel Grid.Row="0" Margin="0,0,0,8">
-                        <TextBlock Text="Data Path" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding DataPath}"
-                                 Watermark="Path to Versions and Runtime folders"/>
-                    </StackPanel>
-
+                <Grid RowDefinitions="Auto,*,Auto" Margin="8">
                     <!-- Install Button -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,8" Spacing="4">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,8" Spacing="4">
                         <Button Content="Install from .7z..."
                                 Click="OnBrowseArchiveClick"
                                 HorizontalAlignment="Left"
@@ -123,7 +117,7 @@
                                    FontSize="11"/>
                     </StackPanel>
 
-                    <DataGrid Grid.Row="2"
+                    <DataGrid Grid.Row="1"
                               ItemsSource="{Binding Versions}"
                               AutoGenerateColumns="False"
                               CanUserReorderColumns="False"

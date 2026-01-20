@@ -35,7 +35,7 @@ public class ConfigService
     /// <summary>
     /// Path where Versions and Runtime folders are stored.
     /// </summary>
-    public string DataPath => _config.DataPath;
+    public string DataPath => AppInfo.DataDirectory;
 
     /// <summary>
     /// Configured airports.
@@ -114,16 +114,6 @@ public class ConfigService
     public void UpdateSerialPorts(IEnumerable<SerialPortConfig> serialPorts)
     {
         _config = _config with { SerialPorts = serialPorts.ToList() };
-        Save();
-        ConfigChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>
-    /// Updates the data path and persists.
-    /// </summary>
-    public void UpdateDataPath(string dataPath)
-    {
-        _config = _config with { DataPath = dataPath };
         Save();
         ConfigChanged?.Invoke(this, EventArgs.Empty);
     }

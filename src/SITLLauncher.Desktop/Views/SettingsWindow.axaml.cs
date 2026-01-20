@@ -3,6 +3,7 @@ using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using SITLLauncher.Core;
 using SITLLauncher.Core.ViewModels;
 
 namespace SITLLauncher.Desktop.Views;
@@ -33,7 +34,7 @@ public partial class SettingsWindow : Window
         var result = await StorageProvider.OpenFilePickerAsync(options);
         if (result.Count == 0) return;
 
-        var versionsPath = Path.Combine(vm.DataPath, "Versions");
+        var versionsPath = Path.Combine(AppInfo.DataDirectory, "Versions");
         var success = await InstallProgressWindow.ShowAndInstallAsync(result[0].Path.LocalPath, versionsPath, this);
 
         if (success)
