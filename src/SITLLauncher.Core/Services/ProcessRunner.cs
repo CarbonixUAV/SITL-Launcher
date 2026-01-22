@@ -9,9 +9,15 @@ namespace SITLLauncher.Core.Services;
 /// </summary>
 public class ProcessRunner : IDisposable
 {
+    private readonly JobObject? _jobObject;
     private Process? _process;
     private readonly object _lock = new();
     private readonly StringBuilder _outputBuffer = new();
+
+    public ProcessRunner(JobObject? jobObject = null)
+    {
+        _jobObject = jobObject;
+    }
 
     /// <summary>
     /// Whether a process is currently running.
@@ -79,6 +85,7 @@ public class ProcessRunner : IDisposable
             _process.Exited += OnProcessExited;
 
             _process.Start();
+            _jobObject?.AssignProcess(_process);
             _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
         }

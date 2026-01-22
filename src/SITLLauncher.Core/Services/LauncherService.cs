@@ -17,11 +17,11 @@ public class LauncherService : IDisposable
     private readonly ConfigService _configService;
     private readonly ProcessRunner _processRunner;
 
-    public LauncherService(ConfigService configService, IUiDispatcher dispatcher)
+    public LauncherService(ConfigService configService, IUiDispatcher dispatcher, JobObject? jobObject = null)
     {
         _configService = configService;
         _dispatcher = dispatcher;
-        _processRunner = new ProcessRunner();
+        _processRunner = new ProcessRunner(jobObject);
 
         _processRunner.Exited += OnProcessExited;
         _processRunner.OutputReceived += OnOutputReceived;

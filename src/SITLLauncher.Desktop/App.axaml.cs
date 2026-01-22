@@ -17,6 +17,7 @@ namespace SITLLauncher.Desktop;
 
 public partial class App : Application
 {
+    private JobObject? _jobObject;
     private ConfigService? _configService;
     private LauncherService? _launcher;
 
@@ -35,11 +36,13 @@ public partial class App : Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
             Directory.CreateDirectory(AppInfo.DataDirectory);
+            _jobObject = new JobObject();
             _configService = new ConfigService(
                 Path.Combine(AppInfo.DataDirectory, "config.json"));
             _launcher = new LauncherService(
                 _configService,
-                new AvaloniaUiDispatcher());
+                new AvaloniaUiDispatcher(),
+                _jobObject);
 
             var mainWindow = new MainWindow
             {
