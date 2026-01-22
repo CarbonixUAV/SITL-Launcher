@@ -40,6 +40,7 @@
                     Content="&#x2699;"
                     Click="OnSettingsClick"
                     ToolTip.Tip="Settings"
+                    FontFamily="Segoe UI Symbol"
                     FontSize="16"
                     Padding="8,4"
                     VerticalAlignment="Bottom"
@@ -47,18 +48,29 @@
         </Grid>
 
         <!-- Aircraft -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,8">
-            <TextBlock Text="Aircraft" Margin="0,0,0,4"/>
-            <ComboBox ItemsSource="{Binding Aircraft}"
-                      SelectedItem="{Binding SelectedAircraft}"
-                      HorizontalAlignment="Stretch">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}"/>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,8" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Aircraft" Margin="0,0,0,4"/>
+                <ComboBox ItemsSource="{Binding Aircraft}"
+                          SelectedItem="{Binding SelectedAircraft}"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="&#x1F4C2;"
+                    Click="OnOpenLogsClick"
+                    ToolTip.Tip="Open logs folder"
+                    FontFamily="Segoe UI Symbol"
+                    FontSize="16"
+                    Padding="8,4"
+                    VerticalAlignment="Bottom"
+                    Margin="8,0,0,0"/>
+        </Grid>
 
         <!-- Airport -->
         <StackPanel Grid.Row="2" Margin="0,0,0,8">

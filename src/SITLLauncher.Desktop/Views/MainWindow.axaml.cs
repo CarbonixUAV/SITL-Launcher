@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -105,6 +106,24 @@ public partial class MainWindow : Window
     private void OnSettingsClick(object? sender, RoutedEventArgs e)
     {
         _ = ShowSettingsAsync();
+    }
+
+    private void OnOpenLogsClick(object? sender, RoutedEventArgs e)
+    {
+        if (_configService is null || DataContext is not MainWindowViewModel vm)
+            return;
+
+        var logsPath = Path.Combine(_configService.DataPath, "Runtime");
+        if (vm.SelectedAircraft is not null)
+            logsPath = Path.Combine(logsPath, vm.SelectedAircraft.Name);
+        logsPath = Path.Combine(logsPath, "logs");
+
+        Directory.CreateDirectory(logsPath);
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = logsPath,
+            UseShellExecute = true
+        });
     }
 
     private async Task ShowSettingsAsync()
