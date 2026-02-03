@@ -42,13 +42,18 @@ public class VersionInstaller(string versionsPath)
             // Create temp extraction directory
             Directory.CreateDirectory(tempExtractPath);
 
-            // Extract using Windows' built-in tar command (supports 7z in Windows 10+)
+            // Extract using bundled 7za.exe
             progress?.Report(0.1);
+
+            var sevenZaPath = Path.Combine(AppContext.BaseDirectory, "7za.exe");
+            if (!File.Exists(sevenZaPath))
+                throw new InvalidOperationException(
+                    "7za.exe not found alongside the application. The installation may be corrupted.");
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = "tar",
-                Arguments = $"-xf \"{archivePath}\" -C \"{tempExtractPath}\"",
+                FileName = sevenZaPath,
+                Arguments = $"x \"{archivePath}\" -o\"{tempExtractPath}\" -y",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

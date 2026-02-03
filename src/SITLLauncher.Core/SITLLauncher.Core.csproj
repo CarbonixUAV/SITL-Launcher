@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <SevenZipVersion>25.1.0</SevenZipVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="7-Zip.CommandLine" Version="$(SevenZipVersion)">
+      <IncludeAssets>none</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(NuGetPackageRoot)7-zip.commandline\$(SevenZipVersion)\tools\7za.exe" CopyToOutputDirectory="PreserveNewest" Link="7za.exe" />
   </ItemGroup>
 </Project>
