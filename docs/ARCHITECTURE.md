@@ -13,7 +13,7 @@ src/
     ├── Views/                  # XAML views (MainWindow, SettingsWindow, etc.)
     ├── Services/               # Avalonia-specific services (AvaloniaUiDispatcher)
     ├── App.axaml[.cs]          # Application entry point
-    └── Program.cs              # Main method, DI container setup
+    └── Program.cs              # Main method
 ```
 
 ## Layer Separation
@@ -30,7 +30,7 @@ src/
 - Avalonia-specific implementation
 - References Core library
 - Handles UI thread marshaling via `IUiDispatcher`
-- Sets up dependency injection in [Program.cs](src/SITLLauncher.Desktop/Program.cs)
+- Constructs and wires services in [App.axaml.cs](src/SITLLauncher.Desktop/App.axaml.cs)
 
 ## Key Services
 
@@ -52,23 +52,22 @@ Raises `ConfigChanged` event when settings are modified.
 
 Orchestrates the launch flow:
 
-1. Validates selections (version, aircraft, airport)
-2. Syncs config files to Runtime/ if version changed (via `RuntimeSyncService`)
-3. Parses launch.bat for frame type and model (via `LaunchBatParser`)
-4. Builds command line arguments
-5. Launches SITL process (via `ProcessRunner`)
-6. Records launch in `ConfigService`
+- Syncs config files to Runtime/ if version changed (via `RuntimeSyncService`)
+- Builds command line arguments from the aircraft's `FrameConfig`
+- Launches SITL process (via `ProcessRunner`)
 
 ### RuntimeSyncService
 
 [RuntimeSyncService.cs](src/SITLLauncher.Core/Services/RuntimeSyncService.cs)
 
-Manages Runtime/ folder structure:
+Manages Runtime/ folder structure. Version folders contain config files that ship with a
+build (e.g., defaults.parm, scripts/, JSON configs). Runtime folders hold persistent data
+that should survive version switches (e.g., eeprom.bin, logs/, terrain cache).
 
-- Syncs scripts/, defaults.parm, *.json from Versions/{version}/{aircraft}/ to Runtime/{aircraft}/
+- Syncs config files and scripts from Versions/{version}/{aircraft}/ to Runtime/{aircraft}/
 - Only runs when version changes for an aircraft
-- Clobbers existing files and deletes stale ones
-- Preserves eeprom.bin, logs/, and terrain/ (persistent data)
+- Clobbers existing synced files and deletes stale ones
+- Never touches persistent runtime data
 
 ### ProcessRunner
 
@@ -85,21 +84,18 @@ Manages SITL process lifecycle:
 
 [LaunchBatParser.cs](src/SITLLauncher.Core/Services/LaunchBatParser.cs)
 
-Parses launch.bat files to extract:
-
-- Frame type (`quadplane` or `flightaxis`)
-- Model parameter (JSON file for quadplane, empty for flightaxis)
-
-Keeps V0 batch file configs as source of truth.
+Parses launch.bat files to build a `FrameConfig`: executable path, model argument
+(`-M`), and defaults file (`--defaults`). Keeps V0 batch file configs as source of truth.
 
 ### VersionScanner
 
 [VersionScanner.cs](src/SITLLauncher.Core/Services/VersionScanner.cs)
 
-Scans Versions/ folder:
+Scans Versions/ folder at startup:
 
 - Returns list of `SitlVersion` objects
 - Each version contains list of `Aircraft` (subfolders with launch.bat)
+- Parses each aircraft's launch.bat via `LaunchBatParser` to populate `FrameConfig`
 
 ## MVVM Pattern
 
@@ -134,15 +130,16 @@ Settings UI state:
 
 ## Data Flow
 
-1. User selects Version → Aircraft dropdown updates
-2. User selects Aircraft → Airport defaults to last-used for this aircraft
-3. User clicks Launch → `LauncherService` orchestrates:
+1. App starts → `VersionScanner` scans Versions/ and parses each aircraft's launch.bat
+2. User selects Version → Aircraft dropdown updates
+3. User selects Aircraft → Airport defaults to last-used for this aircraft
+4. User clicks Launch → `LauncherService` orchestrates:
    - Check if version changed (compare to `ConfigService.GetLastVersionForAircraft()`)
    - If changed, `RuntimeSyncService` syncs config files
-   - `LaunchBatParser` reads frame type from launch.bat
-   - `ProcessRunner` starts CxPilot.exe
    - `ConfigService.RecordLaunch()` persists selections
-4. SITL output → `ProcessRunner` events → `MainWindowViewModel.OutputLines`
+   - Build arguments from the aircraft's already-parsed `FrameConfig`
+   - `ProcessRunner` starts SITL executable
+5. SITL output → `ProcessRunner` events → `MainWindowViewModel.OutputLines`
 
 ## Configuration Storage
 
@@ -169,19 +166,17 @@ config.json structure:
 }
 ```
 
-## Dependency Injection
+## Wiring
 
-Set up in [Program.cs](src/SITLLauncher.Desktop/Program.cs):
-
-- Services registered as singletons
-- ViewModels registered as transient
-- Avalonia's built-in DI container used
+Services are manually constructed in [App.axaml.cs](src/SITLLauncher.Desktop/App.axaml.cs)
+during startup — no DI container.
 
 ## Threading Model
 
 - SITL process runs on background thread
-- UI updates marshaled via `IUiDispatcher.InvokeAsync()`
-- `ProcessRunner` events raised on background thread, ViewModel handles marshaling
+- `ProcessRunner` raises events on background threads
+- `LauncherService` marshals all events to the UI thread via `IUiDispatcher` before
+  exposing them — ViewModels never need to marshal
 
 ## MSIX Packaging Notes
 
