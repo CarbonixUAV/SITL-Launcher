@@ -13,7 +13,7 @@ src/
     ├── Views/                  # XAML views (MainWindow, SettingsWindow, etc.)
     ├── Services/               # Avalonia-specific services (AvaloniaUiDispatcher)
     ├── App.axaml[.cs]          # Application entry point
-    └── Program.cs              # Main method, DI container setup
+    └── Program.cs              # Main method
 ```
 
 ## Layer Separation
@@ -30,7 +30,7 @@ src/
 - Avalonia-specific implementation
 - References Core library
 - Handles UI thread marshaling via `IUiDispatcher`
-- Sets up dependency injection in [Program.cs](src/SITLLauncher.Desktop/Program.cs)
+- Constructs and wires services in [App.axaml.cs](src/SITLLauncher.Desktop/App.axaml.cs)
 
 ## Key Services
 
@@ -166,19 +166,17 @@ config.json structure:
 }
 ```
 
-## Dependency Injection
+## Wiring
 
-Set up in [Program.cs](src/SITLLauncher.Desktop/Program.cs):
-
-- Services registered as singletons
-- ViewModels registered as transient
-- Avalonia's built-in DI container used
+Services are manually constructed in [App.axaml.cs](src/SITLLauncher.Desktop/App.axaml.cs)
+during startup — no DI container.
 
 ## Threading Model
 
 - SITL process runs on background thread
-- UI updates marshaled via `IUiDispatcher.InvokeAsync()`
-- `ProcessRunner` events raised on background thread, ViewModel handles marshaling
+- `ProcessRunner` raises events on background threads
+- `LauncherService` marshals all events to the UI thread via `IUiDispatcher` before
+  exposing them — ViewModels never need to marshal
 
 ## MSIX Packaging Notes
 
