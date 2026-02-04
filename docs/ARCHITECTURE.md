@@ -60,12 +60,14 @@ Orchestrates the launch flow:
 
 [RuntimeSyncService.cs](src/SITLLauncher.Core/Services/RuntimeSyncService.cs)
 
-Manages Runtime/ folder structure:
+Manages Runtime/ folder structure. Version folders contain config files that ship with a
+build (e.g., defaults.parm, scripts/, JSON configs). Runtime folders hold persistent data
+that should survive version switches (e.g., eeprom.bin, logs/, terrain cache).
 
-- Syncs scripts/, defaults.parm, *.json from Versions/{version}/{aircraft}/ to Runtime/{aircraft}/
+- Syncs config files and scripts from Versions/{version}/{aircraft}/ to Runtime/{aircraft}/
 - Only runs when version changes for an aircraft
-- Clobbers existing files and deletes stale ones
-- Preserves eeprom.bin, logs/, and terrain/ (persistent data)
+- Clobbers existing synced files and deletes stale ones
+- Never touches persistent runtime data
 
 ### ProcessRunner
 
