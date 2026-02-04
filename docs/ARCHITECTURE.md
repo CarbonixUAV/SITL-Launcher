@@ -52,12 +52,9 @@ Raises `ConfigChanged` event when settings are modified.
 
 Orchestrates the launch flow:
 
-1. Validates selections (version, aircraft, airport)
-2. Syncs config files to Runtime/ if version changed (via `RuntimeSyncService`)
-3. Parses launch.bat for frame type and model (via `LaunchBatParser`)
-4. Builds command line arguments
-5. Launches SITL process (via `ProcessRunner`)
-6. Records launch in `ConfigService`
+- Syncs config files to Runtime/ if version changed (via `RuntimeSyncService`)
+- Builds command line arguments from the aircraft's `FrameConfig`
+- Launches SITL process (via `ProcessRunner`)
 
 ### RuntimeSyncService
 
@@ -85,21 +82,18 @@ Manages SITL process lifecycle:
 
 [LaunchBatParser.cs](src/SITLLauncher.Core/Services/LaunchBatParser.cs)
 
-Parses launch.bat files to extract:
-
-- Frame type (`quadplane` or `flightaxis`)
-- Model parameter (JSON file for quadplane, empty for flightaxis)
-
-Keeps V0 batch file configs as source of truth.
+Parses launch.bat files to build a `FrameConfig`: executable path, model argument
+(`-M`), and defaults file (`--defaults`). Keeps V0 batch file configs as source of truth.
 
 ### VersionScanner
 
 [VersionScanner.cs](src/SITLLauncher.Core/Services/VersionScanner.cs)
 
-Scans Versions/ folder:
+Scans Versions/ folder at startup:
 
 - Returns list of `SitlVersion` objects
 - Each version contains list of `Aircraft` (subfolders with launch.bat)
+- Parses each aircraft's launch.bat via `LaunchBatParser` to populate `FrameConfig`
 
 ## MVVM Pattern
 
@@ -134,15 +128,16 @@ Settings UI state:
 
 ## Data Flow
 
-1. User selects Version → Aircraft dropdown updates
-2. User selects Aircraft → Airport defaults to last-used for this aircraft
-3. User clicks Launch → `LauncherService` orchestrates:
+1. App starts → `VersionScanner` scans Versions/ and parses each aircraft's launch.bat
+2. User selects Version → Aircraft dropdown updates
+3. User selects Aircraft → Airport defaults to last-used for this aircraft
+4. User clicks Launch → `LauncherService` orchestrates:
    - Check if version changed (compare to `ConfigService.GetLastVersionForAircraft()`)
    - If changed, `RuntimeSyncService` syncs config files
-   - `LaunchBatParser` reads frame type from launch.bat
-   - `ProcessRunner` starts CxPilot.exe
    - `ConfigService.RecordLaunch()` persists selections
-4. SITL output → `ProcessRunner` events → `MainWindowViewModel.OutputLines`
+   - Build arguments from the aircraft's already-parsed `FrameConfig`
+   - `ProcessRunner` starts SITL executable
+5. SITL output → `ProcessRunner` events → `MainWindowViewModel.OutputLines`
 
 ## Configuration Storage
 
