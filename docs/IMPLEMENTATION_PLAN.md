@@ -55,17 +55,14 @@
 
 ## Future Enhancements
 
-### Milestone 5: Installer and Distribution
+### Milestone 5: Packaging and Distribution ✅ COMPLETED
 
 **Goal:** Package the launcher for easy distribution to Carbonix pilots.
 
-- [ ] Create Windows installer (WiX Toolset or Inno Setup)
-  - [ ] Install to Program Files
-  - [ ] Create Start Menu shortcut
-- [ ] Add versioning and auto-update mechanism (check GitHub releases)
-- [ ] Create initial Versions/ bundle with latest CxPilot release
-- [ ] Add README and user documentation
-- [ ] Test installer on clean Windows VM
+- [x] Design app logo and generate MSIX package assets
+- [x] Create MSIX package with build script and manifest
+- [x] Add GitHub Actions CI workflow for MSIX releases
+- [x] Add auto-update via .appinstaller hosted on GitHub Pages
 
 ### Milestone 6: Channel-Based Version Selection
 
