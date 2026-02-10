@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
@@ -29,6 +30,11 @@ public partial class MainWindow : Window
         InitializeComponent();
         SetupAutoScroll();
         SetupDragDrop();
+
+        var version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (version is not null)
+            Title = $"SITL Launcher v{version}";
     }
 
     public void Initialize(ConfigService configService, Action rescanVersions)
