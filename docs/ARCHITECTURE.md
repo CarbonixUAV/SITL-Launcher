@@ -182,11 +182,15 @@ during startup — no DI container.
 
 Data lives in `%LOCALAPPDATA%\SITLLauncher`:
 
-- `config.json` - virtualized (auto-removed on uninstall)
+- `config.json` - virtualized on Win11 (auto-removed on uninstall), unvirtualized on Win10
 - `Versions/` - excluded from virtualization
 - `Runtime/` - excluded from virtualization
 
-The Versions and Runtime folders are excluded from MSIX file system virtualization
-(see [Package.appxmanifest](../Packaging/Package.appxmanifest)) because child processes
-(SITL exe) are not subject to virtualization and need real filesystem access to these
-folders.
+The manifest (see [Package.appxmanifest](../Packaging/Package.appxmanifest)) uses two
+declarations so child processes (SITL exe) get real filesystem access:
+
+- `desktop6:FileSystemWriteVirtualization` — Win10 1903+, disables all virtualization
+- `virtualization:ExcludedDirectories` — Win11+, excludes only Versions/ and Runtime/
+
+Windows 11 uses the per-directory exclusions and ignores desktop6. Windows 10 only
+understands desktop6 (the `virtualization` namespace is in `IgnorableNamespaces`).
