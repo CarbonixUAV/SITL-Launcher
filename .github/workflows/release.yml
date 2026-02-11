@@ -41,9 +41,6 @@ jobs:
           $manifest = $manifest -replace 'Version="1.0.0.0"', 'Version="${{ steps.version.outputs.MSIX_VERSION }}"'
           Set-Content "Packaging/Package.appxmanifest" $manifest
 
-      - name: Restore dependencies
-        run: dotnet restore
-
       - name: Publish application
         run: |
           dotnet publish src/SITLLauncher.Desktop/SITLLauncher.Desktop.csproj `
@@ -63,6 +60,9 @@ jobs:
       - name: Create MSIX package
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $ErrorActionPreference = 'Stop'
+
           # Copy published files to package layout
           $layoutDir = "msix-layout"
           New-Item -ItemType Directory -Path $layoutDir -Force | Out-Null
@@ -102,8 +102,6 @@ jobs:
 
           # Sign
           & $signtool sign /fd SHA256 /f certificate.pfx /p "${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}" $msixPath
-
-          echo "MSIX_PATH=$msixPath" >> $env:GITHUB_OUTPUT
 
       - name: Clean up certificate
         if: always()
